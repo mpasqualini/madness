@@ -1,0 +1,18 @@
+---
+title: "Notas"
+author: "Mariana Pasqualini"
+date: "21/02/2020"
+output: html_document
+---
+
+### Glossário e definições
+
+- Division-I (D-I) school: são as 68 escolas que disputam o March Madness e que possuem o mais alto nível de desempenho da NCAA. Em geral, conta com melhores atletas e maiores orçamentos.
+- Play-in games: são os jogos antes do torneio entre os 4 _automatic bid_ mais baixos e os 4 _at-large bid_ mais baixos (conhecido como **First Four**). Isso pode influenciar o desempenho dos times no campeonato, dado que eles começam a jogar antes dos outros (e podem estar mais desgastados/sofrerem fraturas/etc ao longo do torneio).
+- Automatic bid: times escolhidos por boas performances anteriores (são os ganhadores do _conference tournaments_). São escolhidos 32 times dessa forma.
+- At-large bid: times escolhidos de acordo com critérios de um comitê. São escolhidos 36 times dessa forma no campeonato masculino e 32 no feminino.
+
+### Hipóteses e perguntas
+- Os times que ganham, ganham com uma grande diferença de pontuação?
+- A rivalidade entre os times na liga feminina é a mesma que a masculina?
+- Existe uma concentração de injuries no torneio?
