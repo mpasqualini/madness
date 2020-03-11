@@ -11,7 +11,12 @@ ggthemr("dust")
 
 # women
 
-wevents15 <- read.csv(here("data/raw/2020-Womens-Data", "WEvents2015.csv"))
+source(here("src", "reading_file.r"))
+
+women_historical <-  reading_file(here("data/raw/2020DataFiles/2020-Womens-Data"))
+
+# TODO clean this mess and use the functions created
+wevents15 <- read.csv(here("data/raw/202DataFiles/2020-Womens-Data", "WEvents2015.csv"))
 wevents16 <- read.csv(here("data/raw/2020-Womens-Data", "WEvents2016.csv"))
 wevents17 <- read.csv(here("data/raw/2020-Womens-Data", "WEvents2017.csv"))
 wevents18 <- read.csv(here("data/raw/2020-Womens-Data", "WEvents2018.csv"))
@@ -19,9 +24,9 @@ wevents19 <- read.csv(here("data/raw/2020-Womens-Data", "WEvents2019.csv"))
 wplayers <- read.csv(here("data/raw/2020-Womens-Data", "WPlayers.csv"))
 
 # women stage1
-wteams <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WTeams.csv"))
+wteams <- read.csv(here("data/raw/2020DataFiles/2020-Womens-Data/WDataFiles_Stage1", "WTeams.csv"))
 wgamecities <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WGameCities.csv"))
-wcompact <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WNCAATourneyCompactResults.csv"))
+wcompact <- read.csv(here("data/raw/2020DataFiles/2020-Womens-Data/WDataFiles_Stage1", "WNCAATourneyCompactResults.csv"))
 wdetailed <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WNCAATourneyDetailedResults.csv"))
 wseeds <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WNCAATourneySeeds.csv"))
 wslots <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WNCAATourneySlots.csv"))
@@ -63,6 +68,7 @@ wseeds <- wseeds %>% left_join(wteams, by = "TeamID") %>%
                  SeedNo = as.numeric(str_sub(Seed, 2))) 
 
 wseeds %>% write_rds(here("data/processed/women/wseeds.rds"))
+wseeds <- read_rds(here("data/processed/women/wseeds.rds"))
 
 wseeds %>% 
   filter(SeedNo == 1) %>% 
@@ -76,6 +82,8 @@ wseeds %>%
                   panel.grid.minor = element_blank()) +
             xlab("Team") +
             ylab("Number of times in #1 seed")
+
+# TODO get the winners per season
 
 wseeds %>% 
   filter(SeedNo == 16) %>% 
@@ -91,9 +99,7 @@ wseeds %>%
   ylab("Number of times in #16 seed")
           
 last_game <- wcompact %>% 
-  left_join(wteams, by = c("WTeamID" = "TeamID")) %>%
-  left_join(wteams, by = c("LTeamID" = "TeamID")) %>% 
-  rename("WTeamName" = "TeamName.x", "LTeamName" = "TeamName.y") %>% 
-    group_by(Season) %>% 
-      mutate(LastGameDayNum = max(DayNum)) %>% 
-        select(Season, LastGameDayNum, WTeamID, LTeamID, WScore, LScore)
+  filter(DayNum == 153) %>% 
+  left_join(wteams, by = c("WTeamID" = "TeamID"))
+
+View(last_game)
