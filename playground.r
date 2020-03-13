@@ -1,5 +1,6 @@
 library(here)
 library(dplyr)
+library(tidyr)
 library(purrr)
 library(tidyselect)
 library(stringr)
@@ -58,6 +59,26 @@ mwinners %>%
   ylab("Number of times winning the competition")
 
 # exploring winners ----
+
+select(Season, wTeamID, LTeamID, WFinalScore, LFinalScore, )
+
+compact_results <- men_stage1 %>% pluck(6)
+
+a <- compact_results %>% 
+  pivot_longer(cols = contains("Score"), names_to = "resolution")
+
+a %>% 
+  ggplot(aes(y = as.factor(Season), x = value, fill = resolution)) +
+    geom_density_ridges() +
+    vline(x = 100) +
+    theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  xlab("Score") +
+  ylab("Season")
+
+# there's no big difference between the winner and loser score
+# but if you score > 80 points in the game, you'll probably be the winner
+
 # TODO get the winners per season
 
 last_game <- wcompact %>% 
@@ -75,7 +96,7 @@ mwinners %>%
   tally(sort = TRUE)
 
 mevents15 <- pluck(men_historical, 1)
-mevents16 <- pluck(men_historical, 2)
+mevents16 <- pluck(men_hmevents19ical, 2)
 mevents17 <- pluck(men_historical, 3)
 mevents18 <- pluck(men_historical, 4)
 mevents19 <- pluck(men_historical, 5)
