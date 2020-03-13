@@ -1,105 +1,87 @@
 library(here)
 library(dplyr)
+library(purrr)
 library(tidyselect)
 library(stringr)
 library(ggplot2)
 library(ggthemr)
+library(ggridges)
 library(readr)
-
-ggthemr("dust")
-# reading files ----
-
-# women
 
 source(here("src", "reading_file.r"))
 
-women_historical <-  reading_file(here("data/raw/2020DataFiles/2020-Womens-Data"))
+ggthemr("dust")
 
-# TODO clean this mess and use the functions created
-wevents15 <- read.csv(here("data/raw/202DataFiles/2020-Womens-Data", "WEvents2015.csv"))
-wevents16 <- read.csv(here("data/raw/2020-Womens-Data", "WEvents2016.csv"))
-wevents17 <- read.csv(here("data/raw/2020-Womens-Data", "WEvents2017.csv"))
-wevents18 <- read.csv(here("data/raw/2020-Womens-Data", "WEvents2018.csv"))
-wevents19 <- read.csv(here("data/raw/2020-Womens-Data", "WEvents2019.csv"))
-wplayers <- read.csv(here("data/raw/2020-Womens-Data", "WPlayers.csv"))
+# reading files ----
 
-# women stage1
-wteams <- read.csv(here("data/raw/2020DataFiles/2020-Womens-Data/WDataFiles_Stage1", "WTeams.csv"))
-wgamecities <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WGameCities.csv"))
-wcompact <- read.csv(here("data/raw/2020DataFiles/2020-Womens-Data/WDataFiles_Stage1", "WNCAATourneyCompactResults.csv"))
-wdetailed <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WNCAATourneyDetailedResults.csv"))
-wseeds <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WNCAATourneySeeds.csv"))
-wslots <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WNCAATourneySlots.csv"))
-wcompactRegular <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WRegularSeasonCompactResults.csv"))
-wdetailedRegular <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WRegularSeasonDetailedResults.csv"))
-wseasons <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WSeasons.csv"))
-wtconferences <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WTeamConferences.csv"))
-wteamspell <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "WTeamSpellings.csv"))
+# women
+women_historical <- reading_file(here("data/raw/2020-Womens-Data"))
+women_stage1 <- reading_file(here("data/raw/2020-Womens-Data/WDataFiles_Stage1"))
 
 # men 
-# general
+men_historical <- reading_file(here("data/raw/2020-Mens-Data"))
+men_stage1 <- reading_file(here("data/raw/2020-Mens-Data/MDataFiles_Stage1"))
 
-cities <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "Cities.csv"))
-conferences <- read.csv(here("data/raw/2020-Womens-Data/WDataFiles_Stage1", "Conferences.csv"))
+# exploring seeds ----
+# TODO relation between seeds and winners
 
-# exploring ----
+mseeds <- men_stage1 %>% pluck(9) %>% 
+            mutate(Region = as.factor(str_sub(Seed, 1, 1)), 
+                   SeedNo = as.numeric(str_sub(Seed, 2, 3))) %>% 
+            left_join(mteams, by = "TeamID")
 
-wteamspell %>% sample_n(10)
+mseeds %>% write_rds(here("data/processed/men/mseeds.rds"))
 
-wevents15 <- wevents15 %>% 
-                left_join(wteams, by = c("WTeamID" = "TeamID")) %>% 
-                left_join(wteams, by = c("LTeamID" = "TeamID")) %>% 
-                rename("WTeamName" = "TeamName.x",
-                       "LTeamName" = "TeamName.y")
-
-wevents15 %>% 
-  select(WTeamName, LTeamName, WTeamID) %>% 
-    distinct() %>% 
-      group_by(WTeamName) %>% 
-      tally() %>% 
-      collect() %>% 
-      filter(n > 19) %>% 
-      ggplot() +
-        geom_col(aes(x = WTeamName, y = n))
-# Seeds
-
-wseeds <- wseeds %>% left_join(wteams, by = "TeamID") %>% 
-          mutate(Region = as.factor(str_sub(Seed, 1, 1)),
-                 SeedNo = as.numeric(str_sub(Seed, 2))) 
-
-wseeds %>% write_rds(here("data/processed/women/wseeds.rds"))
-wseeds <- read_rds(here("data/processed/women/wseeds.rds"))
-
-wseeds %>% 
+mseeds %>% 
   filter(SeedNo == 1) %>% 
-    group_by(TeamName) %>% 
-      count(sort = TRUE) %>% 
-        filter(n > 3) %>% 
-        ggplot(aes(reorder(x = TeamName, X = -n, sum), n)) +
-          geom_col() +
-            theme(axis.text.x = element_text(angle = 45, hjust = 1),
-                  panel.grid.major = element_blank(),
-                  panel.grid.minor = element_blank()) +
-            xlab("Team") +
-            ylab("Number of times in #1 seed")
-
-# TODO get the winners per season
-
-wseeds %>% 
-  filter(SeedNo == 16) %>% 
   group_by(TeamName) %>% 
   count(sort = TRUE) %>% 
-  filter(n >= 3) %>% 
+  filter(n > 3) %>% 
   ggplot(aes(reorder(x = TeamName, X = -n, sum), n)) +
   geom_col() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   xlab("Team") +
-  ylab("Number of times in #16 seed")
-          
+  ylab("Number of times in #1 seed")
+
+mwinners %>% 
+  group_by(TeamName) %>% 
+  count(sort = TRUE) %>% 
+  filter(n > 2) %>% 
+  ggplot(aes(reorder(x = TeamName, X = -n, sum), n)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  xlab("Team") +
+  ylab("Number of times winning the competition")
+
+# exploring winners ----
+# TODO get the winners per season
+
 last_game <- wcompact %>% 
   filter(DayNum == 153) %>% 
   left_join(wteams, by = c("WTeamID" = "TeamID"))
 
-View(last_game)
+# exploring men
+
+mteams <- pluck(men_stage1, 18)
+mseeds <- pluck(men_stage1, 9)
+mwinners <- pluck(men_stage1, 6) %>% filter(DayNum == 154) %>% left_join(mteams, by = c("WTeamID" = "TeamID"))
+
+mwinners %>% 
+  group_by(TeamName) %>% 
+  tally(sort = TRUE)
+
+mevents15 <- pluck(men_historical, 1)
+mevents16 <- pluck(men_historical, 2)
+mevents17 <- pluck(men_historical, 3)
+mevents18 <- pluck(men_historical, 4)
+mevents19 <- pluck(men_historical, 5)
+
+
+mevents17 %>% 
+  ggplot() +
+  geom_density(aes(x = WFinalScore)) +
+  geom_density(aes(x = LFinalScore), col = "black")
