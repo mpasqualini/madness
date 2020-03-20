@@ -8,6 +8,7 @@ library(ggplot2)
 library(ggthemr)
 library(ggridges)
 library(readr)
+library(boot)
 
 source(here("src", "reading_file.r"))
 
@@ -67,10 +68,17 @@ compact_results <- men_stage1 %>% pluck(6)
 a <- compact_results %>% 
   pivot_longer(cols = contains("Score"), names_to = "resolution")
 
+compact_results <- compact_results %>% 
+  mutate(DifScores = WScore - LScore)
+
+%>% 
+    glimpse() %>% 
+      ggplot(aes(x = DifScores, y = as.factor(Season))) +
+        geom_density_ridges()
+
 a %>% 
   ggplot(aes(y = as.factor(Season), x = value, fill = resolution)) +
     geom_density_ridges() +
-    vline(x = 100) +
     theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   xlab("Score") +
@@ -78,6 +86,61 @@ a %>%
 
 # there's no big difference between the winner and loser score
 # but if you score > 80 points in the game, you'll probably be the winner
+
+a %>% 
+  ggplot(aes( x = value, fill = resolution)) +
+  geom_density() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  xlab("Score") +
+  ylab("Season")
+
+a %>% 
+  ggplot(aes(y = value, x = as.factor(Season), colour = resolution)) +
+    geom_boxplot()
+
+compact_regular <- pluck(men_stage1, 11) %>% mutate(WLoc = as.factor(WLoc), 
+                                                    DifScore = WScore - LScore) %>% 
+                                              left_join(mteams, by = c("WTeamID" = "TeamID"))
+
+compact_regular %>% 
+  group_by(WLoc) %>% 
+    summarise(n = n()) %>% 
+      mutate(freq = n/sum(n)) %>% 
+        ggplot(aes(x = relevel(WLoc, ref = "H"), y = freq)) +
+          geom_bar(stat = "identity") +
+          theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) +
+          scale_y_continuous(labels = scales::percent) +
+          xlab("Location of the winning team") +
+          ylab("Relative frequency")
+
+compact_regular %>% 
+  ggplot(aes(x = DifScore, fill = WLoc)) +
+    geom_bar(stat = "bin") + 
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) +
+    xlab("Difference between winning and losing scores") +
+    ylab("Count")
+
+compact_regular %>% 
+  ggplot(aes(x = WLoc, y = DifScore)) +
+  geom_boxplot() + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  ylab("Difference between winning and losing scores") +
+  xlab("Location of the winning team")
+
+
+# in the regular season, there's a slightly difference 
+# between the difference in wscore and lscore according to
+# the location of the winner (home/visitor/neutral)
+
+compact_regular %>% 
+  group_by(TeamName) %>% 
+    tally(sort = TRUE) %>% 
+      ggplot(aes(x = TeamName, y = n)) +
+        geom_bar(stat = "identity")
 
 # TODO get the winners per season
 
@@ -102,7 +165,3 @@ mevents18 <- pluck(men_historical, 4)
 mevents19 <- pluck(men_historical, 5)
 
 
-mevents17 %>% 
-  ggplot() +
-  geom_density(aes(x = WFinalScore)) +
-  geom_density(aes(x = LFinalScore), col = "black")
