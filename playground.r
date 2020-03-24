@@ -8,9 +8,10 @@ library(ggplot2)
 library(ggthemr)
 library(ggridges)
 library(readr)
-library(boot)
+library(ggpubr)
 
 source(here("src", "reading_file.r"))
+source(here("src", "metrics.r"))
 
 ggthemr("dust")
 
@@ -23,6 +24,22 @@ women_stage1 <- reading_file(here("data/raw/2020-Womens-Data/WDataFiles_Stage1")
 # men 
 men_historical <- reading_file(here("data/raw/2020-Mens-Data"))
 men_stage1 <- reading_file(here("data/raw/2020-Mens-Data/MDataFiles_Stage1"))
+
+# exploring men
+
+mteams <- pluck(men_stage1, 18)
+mseeds <- pluck(men_stage1, 9)
+mwinners <- pluck(men_stage1, 6) %>% filter(DayNum == 154) %>% left_join(mteams, by = c("WTeamID" = "TeamID"))
+
+mwinners %>% 
+  group_by(TeamName) %>% 
+  tally(sort = TRUE)
+
+mevents15 <- pluck(men_historical, 1)
+mevents16 <- pluck(men_hmevents19ical, 2)
+mevents17 <- pluck(men_historical, 3)
+mevents18 <- pluck(men_historical, 4)
+mevents19 <- pluck(men_historical, 5)
 
 # exploring seeds ----
 # TODO relation between seeds and winners
@@ -59,33 +76,30 @@ mwinners %>%
   xlab("Team") +
   ylab("Number of times winning the competition")
 
-# exploring winners ----
-
-select(Season, wTeamID, LTeamID, WFinalScore, LFinalScore, )
+# exploring WScore ----
 
 compact_results <- men_stage1 %>% pluck(6)
 
 a <- compact_results %>% 
   pivot_longer(cols = contains("Score"), names_to = "resolution")
 
-compact_results <- compact_results %>% 
-  mutate(DifScores = WScore - LScore)
-
-%>% 
-    glimpse() %>% 
-      ggplot(aes(x = DifScores, y = as.factor(Season))) +
-        geom_density_ridges()
-
 a %>% 
   ggplot(aes(y = as.factor(Season), x = value, fill = resolution)) +
-    geom_density_ridges() +
-    theme(panel.grid.major = element_blank(),
+  geom_density_ridges() +
+  theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   xlab("Score") +
   ylab("Season")
 
 # there's no big difference between the winner and loser score
 # but if you score > 80 points in the game, you'll probably be the winner
+
+compact_results <- compact_results %>% 
+  mutate(DifScores = WScore - LScore) 
+
+compact_results %>% ggplot(aes(x = DifScores, y = as.factor(Season))) + 
+                      geom_density_ridges()
+
 
 a %>% 
   ggplot(aes( x = value, fill = resolution)) +
@@ -100,8 +114,7 @@ a %>%
     geom_boxplot()
 
 compact_regular <- pluck(men_stage1, 11) %>% mutate(WLoc = as.factor(WLoc), 
-                                                    DifScore = WScore - LScore) %>% 
-                                              left_join(mteams, by = c("WTeamID" = "TeamID"))
+                                                    DifScore = WScore - LScore)
 
 compact_regular %>% 
   group_by(WLoc) %>% 
@@ -140,28 +153,44 @@ compact_regular %>%
   group_by(TeamName) %>% 
     tally(sort = TRUE) %>% 
       ggplot(aes(x = TeamName, y = n)) +
-        geom_bar(stat = "identity")
+        geom_point()
 
 # TODO get the winners per season
+
+mwinners %>% 
+  group_by(TeamName) %>% 
+    count(sort = TRUE)
 
 last_game <- wcompact %>% 
   filter(DayNum == 153) %>% 
   left_join(wteams, by = c("WTeamID" = "TeamID"))
 
-# exploring men
+# rivals 
 
-mteams <- pluck(men_stage1, 18)
-mseeds <- pluck(men_stage1, 9)
-mwinners <- pluck(men_stage1, 6) %>% filter(DayNum == 154) %>% left_join(mteams, by = c("WTeamID" = "TeamID"))
+compact_regular <- compact_regular %>%
+                    left_join(mteams, by = c("WTeamID" = "TeamID")) %>% 
+                    left_join(mteams, by = c("LTeamID" = "TeamID")) %>% 
+                        rename("WTeamName" = "TeamName.x", "LTeamName" = "TeamName.y",
+                               "WFirstD1Season" = "FirstD1Season.x", "WLastD1Season" = "LastD1Season.x",
+                               "LFirstD1Season" = "FirstD1Season.y", "LLastD1Season" = "LastD1Season.y")
+rivals <- compact_regular %>% 
+            group_by(WTeamName, LTeamName) %>% 
+              tally(sort = TRUE)
 
-mwinners %>% 
-  group_by(TeamName) %>% 
-  tally(sort = TRUE)
+rivals2 <- rivals %>% filter(n > 56)
 
-mevents15 <- pluck(men_historical, 1)
-mevents16 <- pluck(men_hmevents19ical, 2)
-mevents17 <- pluck(men_historical, 3)
-mevents18 <- pluck(men_historical, 4)
-mevents19 <- pluck(men_historical, 5)
+ggballoonplot(data = rivals2, x = "WTeamName", y = "LTeamName", size = "n")
 
+rivals %>% 
+  filter(n > 55) %>% 
+    ggplot(aes(x = WTeamName, y = LTeamName, fill = n)) +
+      geom_tile() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
 
+detailed <- pluck(men_stage1, 7)
+
+detailed <- detailed %>% 
+              mutate(WPoss = pmap_dbl(list(WFGA, WFGA3, WFTA, WTO, WOR), possession),
+                     LPoss = pmap_dbl(list(LFGA, LFGA3, LFTA, LTO, LOR), possession))

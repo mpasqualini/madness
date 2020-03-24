@@ -16,3 +16,12 @@ output: html_document
 - Os times que ganham, ganham com uma grande diferença de pontuação?
 - A rivalidade entre os times na liga feminina é a mesma que a masculina?
 - Existe uma concentração de injuries no torneio?
+
+### Definições
+ $Possession = WFGA + WFGA3 + 0.475 \times WFTA + WTO - WOR$ 
+ 
+- Por quê não podemos usar WOR? Porque ele MANTÉM a posse que JÁ EXISTE e não 
+  está iniciando uma nova posse!
+- WFGA >= WFGM
+- WFGA3 >= WFGM3 
+- WFTA >= WFTM
