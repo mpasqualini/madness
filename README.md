@@ -6,3 +6,5 @@ This repository contains my work at Kaggle's Google Cloud & NCAA® March Madness
 - The processed data is placed on data/processed folder and it is subdivided in women and men folders
 - The src folder contains functions for reading and plotting
 - Both women and men analysis are available in this repository
+
+This is an ongoing work
