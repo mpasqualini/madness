@@ -376,19 +376,30 @@ summary {
 <li>Play-in games: são os jogos antes do torneio entre os 4 <em>automatic bid</em> mais baixos e os 4 <em>at-large bid</em> mais baixos (conhecido como <strong>First Four</strong>). Isso pode influenciar o desempenho dos times no campeonato, dado que eles começam a jogar antes dos outros (e podem estar mais desgastados/sofrerem fraturas/etc ao longo do torneio).</li>
 <li>Automatic bid: times escolhidos por boas performances anteriores (são os ganhadores do <em>conference tournaments</em>). São escolhidos 32 times dessa forma.</li>
 <li>At-large bid: times escolhidos de acordo com critérios de um comitê. São escolhidos 36 times dessa forma no campeonato masculino e 32 no feminino.</li>
+<li>Regular season: DayNum &lt;= 132</li>
+<li>NCAA Tourney: DayNum &gt; 132</li>
 </ul>
 </div>
 <div id="hipóteses-e-perguntas" class="section level3">
 <h3>Hipóteses e perguntas</h3>
+<div id="geral" class="section level4">
+<h4>Geral</h4>
 <ul>
 <li>Os times que ganham, ganham com uma grande diferença de pontuação?</li>
 <li>A rivalidade entre os times na liga feminina é a mesma que a masculina?</li>
 <li>Existe uma concentração de injuries no torneio?</li>
 </ul>
 </div>
+<div id="feminino" class="section level4">
+<h4>Feminino</h4>
+<ul>
+<li>Connecticut ganhou 5 torneios desde 2010. Habilidade ou acaso?</li>
+</ul>
+</div>
+</div>
 <div id="definições" class="section level3">
 <h3>Definições</h3>
-<p><span class="math inline">\(Possession = WFGA + WFGA3 + 0.475 \times WFTA + WTO + WDR - WOR\)</span></p>
+<p><span class="math inline">\(Possession = WFGA + WFGA3 + 0.475 \times WFTA + WTO - WOR\)</span></p>
 <ul>
 <li>Por quê não podemos usar WOR? Porque ele MANTÉM a posse que JÁ EXISTE e não está iniciando uma nova posse!</li>
 <li>WFGA &gt;= WFGM</li>

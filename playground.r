@@ -1,13 +1,8 @@
 library(here)
-library(dplyr)
-library(tidyr)
-library(purrr)
+library(tidyverse)
 library(tidyselect)
-library(stringr)
-library(ggplot2)
 library(ggthemr)
 library(ggridges)
-library(readr)
 library(ggpubr)
 
 source(here("src", "reading_file.r"))
@@ -74,7 +69,7 @@ mwinners %>%
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   xlab("Team") +
-  ylab("Number of times winning the competition")
+  ylab("NCAA tournament champions since 1985")
 
 # exploring WScore ----
 
@@ -194,3 +189,76 @@ detailed <- pluck(men_stage1, 7)
 detailed <- detailed %>% 
               mutate(WPoss = pmap_dbl(list(WFGA, WFGA3, WFTA, WTO, WOR), possession),
                      LPoss = pmap_dbl(list(LFGA, LFGA3, LFTA, LTO, LOR), possession))
+
+detailed %>% 
+  pivot_longer(contains("Poss"), names_to = "wlpossession") %>% 
+    ggplot(aes(y = value, x = wlpossession)) +
+      geom_boxplot() +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
+
+# well, apparently there's no big difference between the possession of the winning team.
+# that's because doesn't matter if you stay with the ball longer than the other team, but
+# if you convert most opportunities into points (that's called efficiency)
+
+detailed <- detailed %>% mutate(WOffEff = map2_dbl(WScore, WPoss, off_efficiency),
+                                LOffEff = map2_dbl(LScore, LPoss, off_efficiency))
+
+detailed %>% 
+  ggplot(aes(x = WOffEff, y = LOffEff)) +
+    geom_point()
+
+detailed %>% 
+  pivot_longer(contains("OffEff"), names_to = "wloffeff") %>% 
+    ggplot(aes(y = value, x = wloffeff)) +
+    geom_boxplot() +
+    scale_x_discrete(labels = c("Loser", "Winner")) +
+    xlab("") +
+    ylab("Offensive Efficiency") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())
+
+# let's filter by the top winners of the competition and see their 
+# efficiency compared to others
+
+detailed %>% filter(WTeamID %in% c(1181, 1163, 1314, 1246, 1437)) %>% 
+              select(Season, WTeamID, WOffEff) %>% 
+                left_join(mteams, by = c("WTeamID" = "TeamID")) %>% 
+                ggplot(aes(y = WOffEff, x = TeamName, color = Season)) +
+                  geom_boxplot()
+                
+                ggplot(aes(y = as.factor(Season), x = value, fill = resolution)) +
+                  geom_density_ridges()
+                
+detailed <- detailed %>% 
+              mutate(WOffReboundPerc = map2_dbl(WOR, LDR, off_rebound_perc),
+                     LOffReboundPerc = map2_dbl(LOR, WDR, off_rebound_perc))
+
+detailed %>% 
+  pivot_longer(contains("OffReboundPerc"), names_to = "wlor") %>% 
+    ggplot(aes(y = value, x = wlor)) +
+      geom_boxplot() +
+      scale_x_discrete(labels = c("Loser", "Winner")) +
+      xlab("") +
+      ylab("Offensive Rebound Percentage") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
+
+detailed %>% 
+  pivot_longer(contains("OffReboundPerc"), names_to = "wlor") %>% 
+  ggplot(aes(y = value, x = wlor)) +
+  geom_boxplot() +
+  scale_x_discrete(labels = c("Loser", "Winner")) +
+  xlab("") +
+  ylab("Offensive Rebound Percentage") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+detailed %>% 
+  filter(WTeamID %in% c(1181, 1163, 1314, 1246, 1437)) %>% 
+    group_by(Season, WTeamID) %>% 
+      summarise(Mean = mean(WOffEff)) %>% 
+        ggplot(aes(x = Season, y = Mean)) +
+          geom_line(size = 1) +
+          facet_wrap(~WTeamID)
+

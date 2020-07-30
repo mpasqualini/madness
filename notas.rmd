@@ -11,11 +11,24 @@ output: html_document
 - Play-in games: são os jogos antes do torneio entre os 4 _automatic bid_ mais baixos e os 4 _at-large bid_ mais baixos (conhecido como **First Four**). Isso pode influenciar o desempenho dos times no campeonato, dado que eles começam a jogar antes dos outros (e podem estar mais desgastados/sofrerem fraturas/etc ao longo do torneio).
 - Automatic bid: times escolhidos por boas performances anteriores (são os ganhadores do _conference tournaments_). São escolhidos 32 times dessa forma.
 - At-large bid: times escolhidos de acordo com critérios de um comitê. São escolhidos 36 times dessa forma no campeonato masculino e 32 no feminino.
+- Regular season: DayNum <= 132
+- NCAA Tourney: DayNum > 132
 
 ### Hipóteses e perguntas
+#### Geral
 - Os times que ganham, ganham com uma grande diferença de pontuação?
 - A rivalidade entre os times na liga feminina é a mesma que a masculina?
 - Existe uma concentração de injuries no torneio?
+
+#### Feminino 
+- Connecticut ganhou 5 torneios desde 2010. Habilidade ou acaso? Vale ver quem são os rivais + comuns nessa final. 
+- Correlação entre o bom desempenho na _regular season_ e "ir longe" no NCAA tourney.
+- 2014 parece ter sido uma season excepcional: a pontuação média tanto dos ganhadores quanto dos perdedores aumentou bastante. Por quê?
+
+### Compreensão
+- Como nos jogos da NCAA são mata-mata, não veremos "duplas de times" repetidas porque o que perdeu foi eliminado!
+
+
 
 ### Definições
  $Possession = WFGA + WFGA3 + 0.475 \times WFTA + WTO - WOR$ 
